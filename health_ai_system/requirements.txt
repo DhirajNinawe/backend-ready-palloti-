@@ -1,0 +1,10 @@
+flask
+flask-cors
+groq
+pandas
+numpy
+scikit-learn
+openpyxl
+pdfplumber
+pillow
+pytesseract

@@ -1,0 +1,1602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Health AI — Intelligent Health Analysis</title>
+  <meta name="description" content="AI-powered health intelligence system for diabetes, heart disease, and asthma risk analysis with clinical advice and chatbot." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    /* ============================
+       RESET & BASE
+    ============================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #f5f6fa;
+      --surface:     #ffffff;
+      --surface-2:   #f0f2f8;
+      --border:      #e4e8f0;
+      --text-primary:#1a1d2e;
+      --text-secondary:#6b7280;
+      --text-muted:  #9ca3af;
+      --accent:      #4f7ef8;
+      --accent-soft: #eef2ff;
+      --success:     #16a34a;
+      --success-soft:#dcfce7;
+      --danger:      #dc2626;
+      --danger-soft: #fee2e2;
+      --warning:     #d97706;
+      --warning-soft:#fef3c7;
+      --radius-sm:   8px;
+      --radius:      14px;
+      --radius-lg:   20px;
+      --shadow-sm:   0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+      --shadow:      0 4px 16px rgba(0,0,0,.07), 0 1px 4px rgba(0,0,0,.04);
+      --shadow-lg:   0 12px 40px rgba(0,0,0,.10), 0 2px 8px rgba(0,0,0,.05);
+      --transition:  0.22s cubic-bezier(.4,0,.2,1);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ============================
+       TYPOGRAPHY
+    ============================ */
+    h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.5px; }
+    h2 { font-size: 1.25rem; font-weight: 600; }
+    h3 { font-size: 1rem; font-weight: 600; }
+    p  { color: var(--text-secondary); font-size: .925rem; }
+
+    /* ============================
+       LAYOUT SHELL
+    ============================ */
+    .app-shell {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* ============================
+       TOPBAR
+    ============================ */
+    .topbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .brand-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, #4f7ef8, #7c3aed);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .brand-name {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--text-primary);
+    }
+
+    .brand-name span { color: var(--accent); }
+
+    .topbar-badge {
+      font-size: .72rem;
+      font-weight: 600;
+      background: var(--accent-soft);
+      color: var(--accent);
+      padding: 3px 10px;
+      border-radius: 50px;
+      letter-spacing: .3px;
+    }
+
+    /* ============================
+       VIEWS
+    ============================ */
+    .view {
+      flex: 1;
+      display: none;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity var(--transition), transform var(--transition);
+    }
+
+    .view.active {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .view.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ============================
+       UPLOAD VIEW
+    ============================ */
+    #upload-view {
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 1.5rem;
+    }
+
+    .upload-wrapper {
+      width: 100%;
+      max-width: 540px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.75rem;
+    }
+
+    .upload-header {
+      text-align: center;
+    }
+
+    .upload-header h1 {
+      margin-bottom: 8px;
+    }
+
+    .upload-header p {
+      font-size: .95rem;
+      max-width: 380px;
+      margin: 0 auto;
+    }
+
+    .upload-box {
+      width: 100%;
+      border: 2px dashed var(--border);
+      border-radius: var(--radius-lg);
+      background: var(--surface);
+      padding: 2.8rem 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      cursor: pointer;
+      transition:
+        border-color var(--transition),
+        background var(--transition),
+        box-shadow var(--transition),
+        transform var(--transition);
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .upload-box::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(79,126,248,.04) 0%, rgba(124,58,237,.04) 100%);
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+
+    .upload-box:hover::before,
+    .upload-box.dragover::before {
+      opacity: 1;
+    }
+
+    .upload-box:hover,
+    .upload-box.dragover {
+      border-color: var(--accent);
+      box-shadow: var(--shadow-lg), 0 0 0 4px rgba(79,126,248,.08);
+      transform: translateY(-2px);
+    }
+
+    .upload-icon-wrap {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background: var(--accent-soft);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      transition: transform var(--transition);
+    }
+
+    .upload-box:hover .upload-icon-wrap {
+      transform: scale(1.1);
+    }
+
+    .upload-box h3 {
+      font-size: 1.05rem;
+      color: var(--text-primary);
+    }
+
+    .upload-box p {
+      font-size: .85rem;
+      text-align: center;
+    }
+
+    .file-types {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .file-type-badge {
+      font-size: .72rem;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 4px;
+      background: var(--surface-2);
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+      transition: background var(--transition), color var(--transition);
+    }
+
+    .upload-box:hover .file-type-badge {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: rgba(79,126,248,.3);
+    }
+
+    #file-input { display: none; }
+
+    .file-preview {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      display: none;
+      align-items: center;
+      gap: 12px;
+      box-shadow: var(--shadow-sm);
+      animation: slideIn .22s ease-out;
+    }
+
+    .file-preview.show { display: flex; }
+
+    .file-preview-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      background: var(--accent-soft);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+    .file-preview-info { flex: 1; min-width: 0; }
+
+    .file-preview-name {
+      font-size: .9rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .file-preview-size {
+      font-size: .78rem;
+      color: var(--text-muted);
+    }
+
+    .file-remove-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      padding: 4px;
+      border-radius: 4px;
+      transition: color var(--transition), background var(--transition);
+    }
+
+    .file-remove-btn:hover {
+      color: var(--danger);
+      background: var(--danger-soft);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 14px 24px;
+      border-radius: var(--radius);
+      border: none;
+      background: linear-gradient(135deg, #4f7ef8, #6366f1);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(79,126,248,.35);
+      transition:
+        transform var(--transition),
+        box-shadow var(--transition),
+        opacity var(--transition);
+      letter-spacing: .1px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(79,126,248,.45);
+    }
+
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-primary:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .btn-primary .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      display: none;
+    }
+
+    .btn-primary.loading .spinner { display: block; }
+    .btn-primary.loading .btn-text { display: none; }
+
+    /* ============================
+       RESULT VIEW
+    ============================ */
+    #result-view {
+      padding: 2rem 1.5rem 3rem;
+    }
+
+    .result-container {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .result-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: .5rem;
+    }
+
+    .result-topbar h2 {
+      font-size: 1.4rem;
+    }
+
+    .btn-back {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-secondary);
+      font-size: .88rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition:
+        background var(--transition),
+        color var(--transition),
+        border-color var(--transition),
+        transform var(--transition),
+        box-shadow var(--transition);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn-back:hover {
+      background: var(--surface-2);
+      color: var(--text-primary);
+      border-color: #d1d5db;
+      transform: translateX(-2px);
+    }
+
+    /* ============================
+       GRID LAYOUT
+    ============================ */
+    .result-grid-top {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+
+    @media (max-width: 640px) {
+      .result-grid-top { grid-template-columns: 1fr; }
+    }
+
+    /* ============================
+       CARDS
+    ============================ */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+      transition: transform var(--transition), box-shadow var(--transition);
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .card-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: .78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+
+    .card-label .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
+
+    /* Diagnosis card */
+    .disease-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 14px;
+      border-radius: 50px;
+      font-size: .85rem;
+      font-weight: 600;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: 1px solid rgba(79,126,248,.2);
+      margin-bottom: 1rem;
+    }
+
+    .risk-status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px;
+      border-radius: var(--radius);
+      font-weight: 600;
+      font-size: .95rem;
+    }
+
+    .risk-status.high {
+      background: var(--danger-soft);
+      color: var(--danger);
+      border: 1px solid rgba(220,38,38,.15);
+    }
+
+    .risk-status.safe {
+      background: var(--success-soft);
+      color: var(--success);
+      border: 1px solid rgba(22,163,74,.15);
+    }
+
+    .risk-status .status-icon { font-size: 1.2rem; }
+
+    .prob-text {
+      margin-top: 10px;
+      font-size: .82rem;
+      color: var(--text-muted);
+    }
+
+    .prob-text strong { color: var(--text-primary); }
+
+    /* Future risk card */
+    .future-pct {
+      font-size: 2.6rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -1px;
+      line-height: 1.1;
+      margin-bottom: 6px;
+    }
+
+    .future-pct span {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .future-sub {
+      font-size: .82rem;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 8px;
+      border-radius: 50px;
+      background: var(--surface-2);
+      overflow: hidden;
+      margin-top: 4px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 50px;
+      background: linear-gradient(90deg, #4f7ef8, #7c3aed);
+      transition: width 1s cubic-bezier(.4,0,.2,1);
+      width: 0%;
+    }
+
+    /* Chart card */
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+      transition: transform var(--transition), box-shadow var(--transition);
+    }
+
+    .chart-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 220px;
+      margin-top: 1rem;
+    }
+
+    /* Advice card */
+    .advice-card {
+      background: linear-gradient(135deg, #f0f4ff 0%, #f5f0ff 100%);
+      border: 1px solid rgba(79,126,248,.15);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+    }
+
+    .advice-body {
+      font-size: .9rem;
+      color: var(--text-secondary);
+      line-height: 1.75;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* ============================
+       CHATBOT
+    ============================ */
+    .chat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chat-header {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
+    }
+
+    .chat-header-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #4f7ef8, #7c3aed);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      color: white;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    .chat-header-info h3 { font-size: .95rem; margin-bottom: 1px; }
+
+    .chat-status {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: .75rem;
+      color: var(--success);
+      font-weight: 500;
+    }
+
+    .chat-status::before {
+      content: '';
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--success);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .chat-messages {
+      flex: 1;
+      min-height: 280px;
+      max-height: 380px;
+      overflow-y: auto;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      scroll-behavior: smooth;
+    }
+
+    .chat-messages::-webkit-scrollbar { width: 4px; }
+    .chat-messages::-webkit-scrollbar-track { background: transparent; }
+    .chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 50px; }
+
+    .chat-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--text-muted);
+      text-align: center;
+      gap: 8px;
+      font-size: .88rem;
+      padding: 2rem;
+    }
+
+    .chat-empty .chat-empty-icon { font-size: 2rem; margin-bottom: 4px; }
+
+    .msg-row {
+      display: flex;
+      gap: 8px;
+      animation: slideIn .2s ease-out;
+    }
+
+    .msg-row.user { flex-direction: row-reverse; }
+
+    .msg-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .8rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .msg-row.user .msg-avatar {
+      background: linear-gradient(135deg, #4f7ef8, #6366f1);
+      color: #fff;
+    }
+
+    .msg-row.ai .msg-avatar {
+      background: linear-gradient(135deg, #e9d5ff, #c4b5fd);
+      color: #6d28d9;
+    }
+
+    .msg-bubble {
+      max-width: 70%;
+      padding: 10px 14px;
+      border-radius: 16px;
+      font-size: .88rem;
+      line-height: 1.6;
+      word-break: break-word;
+    }
+
+    .msg-row.user .msg-bubble {
+      background: linear-gradient(135deg, #4f7ef8, #6366f1);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+
+    .msg-row.ai .msg-bubble {
+      background: var(--surface-2);
+      color: var(--text-primary);
+      border-bottom-left-radius: 4px;
+    }
+
+    .msg-time {
+      font-size: .68rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+      padding: 0 4px;
+      align-self: flex-end;
+    }
+
+    .msg-row.user .msg-time { text-align: right; }
+
+    .typing-indicator {
+      display: flex;
+      gap: 4px;
+      padding: 12px 14px;
+    }
+
+    .typing-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      animation: typingBounce 1.4s ease-in-out infinite;
+    }
+
+    .typing-dot:nth-child(2) { animation-delay: .2s; }
+    .typing-dot:nth-child(3) { animation-delay: .4s; }
+
+    .chat-input-area {
+      padding: 1rem 1.25rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
+    }
+
+    #chat-input {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 50px;
+      border: 1.5px solid var(--border);
+      outline: none;
+      font-family: 'Inter', sans-serif;
+      font-size: .9rem;
+      color: var(--text-primary);
+      background: var(--bg);
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+
+    #chat-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(79,126,248,.1);
+    }
+
+    #chat-input::placeholder { color: var(--text-muted); }
+
+    #send-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      border: none;
+      background: linear-gradient(135deg, #4f7ef8, #6366f1);
+      color: #fff;
+      cursor: pointer;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: transform var(--transition), box-shadow var(--transition), opacity var(--transition);
+      box-shadow: 0 3px 10px rgba(79,126,248,.35);
+    }
+
+    #send-btn:hover {
+      transform: scale(1.08);
+      box-shadow: 0 5px 14px rgba(79,126,248,.45);
+    }
+
+    #send-btn:active { transform: scale(.96); }
+
+    #send-btn:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* ============================
+       LOADING OVERLAY
+    ============================ */
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(255,255,255,.85);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .loading-overlay.show { display: flex; }
+
+    .loader-ring {
+      width: 50px;
+      height: 50px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+
+    .loading-text {
+      font-size: .9rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    /* ============================
+       TOAST
+    ============================ */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 1000;
+    }
+
+    .toast {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 18px;
+      box-shadow: var(--shadow-lg);
+      font-size: .88rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: toastSlide .25s ease-out forwards;
+      max-width: 320px;
+    }
+
+    .toast.error { border-left: 3px solid var(--danger); color: var(--danger); }
+    .toast.success { border-left: 3px solid var(--success); color: var(--success); }
+    .toast.info { border-left: 3px solid var(--accent); color: var(--accent); }
+
+    /* ============================
+       ANIMATIONS
+    ============================ */
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: .6; transform: scale(.85); }
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes typingBounce {
+      0%, 60%, 100% { transform: translateY(0); opacity: .4; }
+      30% { transform: translateY(-6px); opacity: 1; }
+    }
+
+    @keyframes toastSlide {
+      from { opacity: 0; transform: translateX(20px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    /* ============================
+       FOOTER
+    ============================ */
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: 16px 2rem;
+      font-size: .78rem;
+      color: var(--text-muted);
+      text-align: center;
+      background: var(--surface);
+    }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <a class="topbar-brand" href="#" id="brand-link" aria-label="Health AI Home">
+      <div class="brand-icon">🧬</div>
+      <span class="brand-name">Health<span>AI</span></span>
+    </a>
+    <span class="topbar-badge" id="status-badge">Ready</span>
+  </header>
+
+  <!-- ===================== UPLOAD VIEW ===================== -->
+  <main class="view active" id="upload-view" aria-label="Upload your medical file">
+    <div class="upload-wrapper">
+
+      <div class="upload-header">
+        <h1>AI Health Analysis</h1>
+        <p>Upload a medical data file and get instant AI-powered risk analysis and clinical advice.</p>
+      </div>
+
+      <!-- Drop Zone -->
+      <div class="upload-box" id="drop-zone" tabindex="0" role="button"
+           aria-label="Click or drag and drop a file to upload">
+        <div class="upload-icon-wrap">📂</div>
+        <h3>Drag &amp; Drop your file here</h3>
+        <p>or click to browse</p>
+        <div class="file-types">
+          <span class="file-type-badge">CSV</span>
+          <span class="file-type-badge">XLSX</span>
+          <span class="file-type-badge">PDF</span>
+          <span class="file-type-badge">PNG</span>
+          <span class="file-type-badge">JPG</span>
+        </div>
+      </div>
+
+      <input type="file" id="file-input" accept=".csv,.xlsx,.pdf,.png,.jpg,.jpeg"
+             aria-label="File upload input" />
+
+      <!-- File Preview -->
+      <div class="file-preview" id="file-preview" role="status" aria-live="polite">
+        <div class="file-preview-icon" id="preview-icon">📄</div>
+        <div class="file-preview-info">
+          <div class="file-preview-name" id="preview-name">filename.csv</div>
+          <div class="file-preview-size" id="preview-size">0 KB</div>
+        </div>
+        <button class="file-remove-btn" id="remove-file-btn" aria-label="Remove selected file"
+                title="Remove file">✕</button>
+      </div>
+
+      <!-- Submit -->
+      <button class="btn-primary" id="show-result-btn" disabled aria-label="Analyse file and show result">
+        <div class="spinner" aria-hidden="true"></div>
+        <span class="btn-text">Show Result →</span>
+      </button>
+
+    </div>
+  </main>
+
+  <!-- ===================== RESULT VIEW ===================== -->
+  <main class="view" id="result-view" aria-label="Analysis results">
+    <div class="result-container">
+
+      <div class="result-topbar">
+        <h2 id="result-heading">Analysis Results</h2>
+        <button class="btn-back" id="back-btn" aria-label="Go back to upload">
+          ← New Analysis
+        </button>
+      </div>
+
+      <!-- TOP GRID: Diagnosis + Future Risk -->
+      <div class="result-grid-top">
+
+        <!-- Diagnosis Card -->
+        <div class="card" id="diagnosis-card">
+          <div class="card-label">
+            <span class="dot" style="background:#4f7ef8"></span>
+            Diagnosis
+          </div>
+          <div class="disease-chip" id="disease-chip">
+            🔬 <span id="disease-name">—</span>
+          </div>
+          <div class="risk-status" id="risk-status">
+            <span class="status-icon">—</span>
+            <span id="risk-text">Analysing…</span>
+          </div>
+          <p class="prob-text">
+            Current probability: <strong id="prob-value">—</strong>
+          </p>
+        </div>
+
+        <!-- Future Risk Card -->
+        <div class="card" id="future-card">
+          <div class="card-label">
+            <span class="dot" style="background:#7c3aed"></span>
+            Future Risk Projection
+          </div>
+          <div class="future-pct">
+            <span id="future-pct-val">—</span><span>%</span>
+          </div>
+          <p class="future-sub">Estimated risk if current trend continues</p>
+          <div class="progress-track">
+            <div class="progress-fill" id="future-bar" style="width:0%"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Risk Graph -->
+      <div class="chart-card card">
+        <div class="card-label">
+          <span class="dot" style="background:#10b981"></span>
+          Risk Comparison Graph
+        </div>
+        <div class="chart-wrap">
+          <canvas id="risk-chart" aria-label="Risk comparison bar chart"></canvas>
+        </div>
+      </div>
+
+      <!-- AI Advice -->
+      <div class="advice-card">
+        <div class="card-label" style="margin-bottom:.75rem">
+          <span class="dot" style="background:#f59e0b"></span>
+          AI Clinical Advice
+        </div>
+        <div class="advice-body" id="advice-body">Loading advice…</div>
+      </div>
+
+      <!-- Chatbot -->
+      <div class="chat-card" id="chatbot-section">
+        <div class="chat-header">
+          <div class="chat-header-icon">AI</div>
+          <div class="chat-header-info">
+            <h3>AI Health Assistant</h3>
+            <span class="chat-status">Online</span>
+          </div>
+        </div>
+
+        <div class="chat-messages" id="chat-messages" role="log" aria-live="polite" aria-label="Chat messages">
+          <div class="chat-empty" id="chat-empty">
+            <div class="chat-empty-icon">💬</div>
+            <p>Ask me anything about your health results</p>
+          </div>
+        </div>
+
+        <div class="chat-input-area">
+          <input
+            type="text"
+            id="chat-input"
+            placeholder="Type your question…"
+            autocomplete="off"
+            aria-label="Type a message to the AI health assistant"
+          />
+          <button id="send-btn" aria-label="Send message">➤</button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    Health AI · AI-powered analysis is for informational purposes only. Consult a qualified physician for medical decisions.
+  </footer>
+
+</div>
+
+<!-- LOADING OVERLAY -->
+<div class="loading-overlay" id="loading-overlay" role="status" aria-live="assertive" aria-label="Loading">
+  <div class="loader-ring"></div>
+  <div class="loading-text" id="loading-text">Analysing your file…</div>
+</div>
+
+<!-- TOAST AREA -->
+<div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+<script>
+// =============================================
+//  CONFIGURATION
+// =============================================
+const API_BASE = 'http://127.0.0.1:5000';   // Flask backend URL
+
+// =============================================
+//  STATE
+// =============================================
+let state = {
+  file: null,
+  disease: null,
+  prob: 0,
+  chatHistory: [],
+  chart: null,
+};
+
+// =============================================
+//  DOM REFS
+// =============================================
+const uploadView      = document.getElementById('upload-view');
+const resultView      = document.getElementById('result-view');
+const dropZone        = document.getElementById('drop-zone');
+const fileInput       = document.getElementById('file-input');
+const filePreview     = document.getElementById('file-preview');
+const previewName     = document.getElementById('preview-name');
+const previewSize     = document.getElementById('preview-size');
+const previewIcon     = document.getElementById('preview-icon');
+const removeFileBtn   = document.getElementById('remove-file-btn');
+const showResultBtn   = document.getElementById('show-result-btn');
+const backBtn         = document.getElementById('back-btn');
+const loadingOverlay  = document.getElementById('loading-overlay');
+const loadingText     = document.getElementById('loading-text');
+const statusBadge     = document.getElementById('status-badge');
+const brandLink       = document.getElementById('brand-link');
+const toastContainer  = document.getElementById('toast-container');
+
+// Result DOM
+const diseaseChip   = document.getElementById('disease-chip');
+const diseaseName   = document.getElementById('disease-name');
+const riskStatus    = document.getElementById('risk-status');
+const riskText      = document.getElementById('risk-text');
+const probValue     = document.getElementById('prob-value');
+const futurePctVal  = document.getElementById('future-pct-val');
+const futureBar     = document.getElementById('future-bar');
+const adviceBody    = document.getElementById('advice-body');
+
+// Chat DOM
+const chatMessages  = document.getElementById('chat-messages');
+const chatEmpty     = document.getElementById('chat-empty');
+const chatInput     = document.getElementById('chat-input');
+const sendBtn       = document.getElementById('send-btn');
+
+// =============================================
+//  VIEW TRANSITIONS
+// =============================================
+function showView(id) {
+  const views = document.querySelectorAll('.view');
+  views.forEach(v => { v.classList.remove('active', 'visible'); });
+
+  const target = document.getElementById(id);
+  target.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Trigger fade-in
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => target.classList.add('visible'));
+  });
+}
+
+// =============================================
+//  FILE HELPERS
+// =============================================
+function getFileIcon(ext) {
+  const icons = { csv:'📊', xlsx:'📗', pdf:'📕', png:'🖼️', jpg:'🖼️', jpeg:'🖼️' };
+  return icons[ext.toLowerCase()] || '📄';
+}
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+}
+
+function setFile(file) {
+  state.file = file;
+  const ext = file.name.split('.').pop().toLowerCase();
+
+  previewIcon.textContent = getFileIcon(ext);
+  previewName.textContent = file.name;
+  previewSize.textContent = formatBytes(file.size);
+  filePreview.classList.add('show');
+  showResultBtn.disabled = false;
+  dropZone.querySelector('h3').textContent = 'File ready';
+}
+
+function clearFile() {
+  state.file = null;
+  fileInput.value = '';
+  filePreview.classList.remove('show');
+  showResultBtn.disabled = true;
+  dropZone.querySelector('h3').textContent = 'Drag & Drop your file here';
+}
+
+// =============================================
+//  DROP ZONE EVENTS
+// =============================================
+dropZone.addEventListener('click', () => fileInput.click());
+
+dropZone.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    fileInput.click();
+  }
+});
+
+['dragenter', 'dragover'].forEach(evt => {
+  dropZone.addEventListener(evt, (e) => {
+    e.preventDefault();
+    dropZone.classList.add('dragover');
+  });
+});
+
+['dragleave', 'dragend', 'drop'].forEach(evt => {
+  dropZone.addEventListener(evt, () => dropZone.classList.remove('dragover'));
+});
+
+dropZone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  const file = e.dataTransfer.files[0];
+  if (file) handleFilePicked(file);
+});
+
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) handleFilePicked(fileInput.files[0]);
+});
+
+function handleFilePicked(file) {
+  const allowed = ['csv','xlsx','pdf','png','jpg','jpeg'];
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (!allowed.includes(ext)) {
+    showToast('Unsupported file type. Please upload CSV, XLSX, PDF, PNG, or JPG.', 'error');
+    return;
+  }
+  setFile(file);
+}
+
+removeFileBtn.addEventListener('click', clearFile);
+
+// =============================================
+//  LOADING HELPERS
+// =============================================
+function showLoading(text = 'Processing…') {
+  loadingText.textContent = text;
+  loadingOverlay.classList.add('show');
+  statusBadge.textContent = 'Analysing…';
+}
+
+function hideLoading() {
+  loadingOverlay.classList.remove('show');
+  statusBadge.textContent = 'Ready';
+}
+
+// =============================================
+//  TOAST
+// =============================================
+function showToast(message, type = 'info', duration = 4000) {
+  const icons = { error: '❌', success: '✅', info: 'ℹ️' };
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<span>${icons[type]}</span> ${message}`;
+  toastContainer.appendChild(toast);
+  setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(20px)';
+    toast.style.transition = 'all .3s ease';
+    setTimeout(() => toast.remove(), 300);
+  }, duration);
+}
+
+// =============================================
+//  CHART
+// =============================================
+function renderChart(disease, prob, future) {
+  const ctx = document.getElementById('risk-chart').getContext('2d');
+  if (state.chart) state.chart.destroy();
+
+  state.chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Current Risk', 'Projected Risk'],
+      datasets: [{
+        label: disease.charAt(0).toUpperCase() + disease.slice(1),
+        data: [+(prob * 100).toFixed(1), +(future * 100).toFixed(1)],
+        backgroundColor: [
+          'rgba(79, 126, 248, 0.75)',
+          'rgba(124, 58, 237, 0.65)',
+        ],
+        borderColor: [
+          'rgba(79, 126, 248, 1)',
+          'rgba(124, 58, 237, 1)',
+        ],
+        borderWidth: 2,
+        borderRadius: 8,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 900, easing: 'easeOutQuart' },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.parsed.y.toFixed(1)}% risk`
+          },
+          backgroundColor: '#1a1d2e',
+          titleColor: '#fff',
+          bodyColor: '#d1d5db',
+          padding: 10,
+          cornerRadius: 8,
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { color: '#6b7280', font: { family: 'Inter', size: 12 } },
+          border: { display: false },
+        },
+        y: {
+          min: 0,
+          max: 100,
+          ticks: {
+            color: '#6b7280',
+            font: { family: 'Inter', size: 11 },
+            callback: v => v + '%',
+          },
+          grid: { color: '#f0f2f8' },
+          border: { display: false },
+        }
+      }
+    }
+  });
+}
+
+// =============================================
+//  POPULATE RESULTS
+// =============================================
+function populateResults(data) {
+  const { disease, prediction, probability, future, advice } = data;
+
+  state.disease = disease;
+  state.prob    = probability;
+
+  // Disease chip
+  const diseaseEmojis = { diabetes: '🩸', heart: '🫀', asthma: '🫁' };
+  const emoji = diseaseEmojis[disease] || '🔬';
+  diseaseName.textContent = disease.charAt(0).toUpperCase() + disease.slice(1);
+  diseaseChip.querySelector('span').textContent = diseaseName.textContent;
+  diseaseChip.querySelector('span:first-child') || '';
+
+  // Risk status
+  const pct = (probability * 100).toFixed(1);
+  probValue.textContent = `${pct}%`;
+
+  riskStatus.className = 'risk-status ' + (prediction === 1 ? 'high' : 'safe');
+  riskStatus.querySelector('.status-icon').textContent = prediction === 1 ? '⚠️' : '✅';
+  riskText.textContent = prediction === 1
+    ? `High Risk Detected — ${pct}% probability`
+    : `No Major Risk — ${pct}% probability`;
+
+  // Future risk
+  const futurePct = (future * 100).toFixed(1);
+  futurePctVal.textContent = futurePct;
+  setTimeout(() => { futureBar.style.width = futurePct + '%'; }, 200);
+
+  // Advice
+  adviceBody.textContent = advice || 'No advice available.';
+
+  // Chart
+  renderChart(disease, probability, future);
+
+  // Update heading
+  document.getElementById('result-heading').textContent =
+    `${diseaseName.textContent} Analysis — ${new Date().toLocaleDateString()}`;
+
+  // Clear old chat
+  state.chatHistory = [];
+  renderChatMessages();
+}
+
+// =============================================
+//  API: PREDICT
+// =============================================
+async function runPrediction() {
+  if (!state.file) return;
+
+  showLoading('Analysing your file…');
+  showResultBtn.classList.add('loading');
+  showResultBtn.disabled = true;
+
+  const formData = new FormData();
+  formData.append('file', state.file);
+
+  try {
+    const res = await fetch(`${API_BASE}/predict`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || `Server error: ${res.status}`);
+    }
+
+    const data = await res.json();
+
+    hideLoading();
+    showResultBtn.classList.remove('loading');
+    showResultBtn.disabled = false;
+
+    populateResults(data);
+    showView('result-view');
+    showToast('Analysis complete!', 'success');
+
+  } catch (err) {
+    hideLoading();
+    showResultBtn.classList.remove('loading');
+    showResultBtn.disabled = false;
+    showToast('Failed to analyse file: ' + err.message, 'error');
+    console.error(err);
+  }
+}
+
+showResultBtn.addEventListener('click', runPrediction);
+
+// =============================================
+//  API: CHAT
+// =============================================
+async function sendChatMessage() {
+  const question = chatInput.value.trim();
+  if (!question || !state.disease) return;
+
+  chatInput.value = '';
+  sendBtn.disabled = true;
+  hideChatEmpty();
+
+  appendMessage('user', question);
+
+  // Typing indicator
+  const typingRow = appendTypingIndicator();
+
+  try {
+    const res = await fetch(`${API_BASE}/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        question,
+        disease: state.disease,
+        prob: state.prob,
+      }),
+    });
+
+    typingRow.remove();
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || `Server error: ${res.status}`);
+    }
+
+    const data = await res.json();
+    appendMessage('ai', data.response || 'No response received.');
+
+  } catch (err) {
+    typingRow.remove();
+    appendMessage('ai', '⚠️ Unable to reach AI assistant. Please try again.');
+    console.error(err);
+  }
+
+  sendBtn.disabled = false;
+  chatInput.focus();
+}
+
+sendBtn.addEventListener('click', sendChatMessage);
+
+chatInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendChatMessage();
+  }
+});
+
+// =============================================
+//  CHAT RENDERING
+// =============================================
+function hideChatEmpty() {
+  if (chatEmpty) chatEmpty.style.display = 'none';
+}
+
+function formatTime(date) {
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function appendMessage(role, text) {
+  const row = document.createElement('div');
+  row.className = `msg-row ${role}`;
+
+  const avatar = document.createElement('div');
+  avatar.className = 'msg-avatar';
+  avatar.textContent = role === 'user' ? '👤' : '🤖';
+
+  const col = document.createElement('div');
+  col.style.display = 'flex';
+  col.style.flexDirection = 'column';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+  bubble.textContent = text;
+
+  const timeEl = document.createElement('div');
+  timeEl.className = 'msg-time';
+  timeEl.textContent = formatTime(new Date());
+
+  col.appendChild(bubble);
+  col.appendChild(timeEl);
+
+  if (role === 'user') {
+    row.appendChild(col);
+    row.appendChild(avatar);
+  } else {
+    row.appendChild(avatar);
+    row.appendChild(col);
+  }
+
+  chatMessages.appendChild(row);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+  return row;
+}
+
+function appendTypingIndicator() {
+  const row = document.createElement('div');
+  row.className = 'msg-row ai';
+
+  const avatar = document.createElement('div');
+  avatar.className = 'msg-avatar';
+  avatar.textContent = '🤖';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble typing-indicator';
+  bubble.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+
+  row.appendChild(avatar);
+  row.appendChild(bubble);
+  chatMessages.appendChild(row);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+  return row;
+}
+
+function renderChatMessages() {
+  // Clear all rows except empty state
+  const rows = chatMessages.querySelectorAll('.msg-row');
+  rows.forEach(r => r.remove());
+  if (chatEmpty) chatEmpty.style.display = '';
+}
+
+// =============================================
+//  NAVIGATION
+// =============================================
+backBtn.addEventListener('click', () => {
+  showView('upload-view');
+  clearFile();
+  if (state.chart) { state.chart.destroy(); state.chart = null; }
+  state.disease = null;
+  state.prob = 0;
+});
+
+brandLink.addEventListener('click', (e) => {
+  e.preventDefault();
+  showView('upload-view');
+});
+
+// =============================================
+//  INIT
+// =============================================
+showView('upload-view');
+</script>
+</body>
+</html>
