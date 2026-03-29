@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Health AI</title>
+    <style>
+        body { font-family: Arial; background: #f5f5f5; padding: 40px; }
+        .card { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        button { padding: 10px 20px; }
+    </style>
+</head>
+
+<body>
+
+<h2>🧠 Health AI System</h2>
+
+<div class="card">
+    <input type="file" id="file">
+    <button onclick="upload()">Show Result</button>
+</div>
+
+<div id="result"></div>
+
+<div class="card">
+    <h3>💬 Chatbot</h3>
+    <input type="text" id="q" placeholder="Ask...">
+    <button onclick="ask()">Send</button>
+    <div id="chat"></div>
+</div>
+
+<script>
+
+let currentData = {};
+
+function upload(){
+    let file = document.getElementById("file").files[0];
+
+    let formData = new FormData();
+    formData.append("file", file);
+
+    fetch("/predict", {
+        method: "POST",
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        currentData = data;
+
+        document.getElementById("result").innerHTML = `
+            <div class="card">
+                <h3>Diagnosis</h3>
+                ${data.prediction == 1 ? "Risk Detected" : "Safe"}
+                <br>${(data.probability*100).toFixed(2)}%
+            </div>
+
+            <div class="card">
+                <h3>Future Risk</h3>
+                ${(data.future*100).toFixed(2)}%
+            </div>
+
+            <div class="card">
+                <h3>AI Advice</h3>
+                ${data.advice}
+            </div>
+        `;
+    });
+}
+
+function ask(){
+    let q = document.getElementById("q").value;
+
+    fetch("/chat", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({
+            question: q,
+            disease: currentData.disease,
+            prob: currentData.probability
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("chat").innerHTML += `<p><b>AI:</b> ${data.response}</p>`;
+    });
+}
+
+</script>
+
+</body>
+</html>
