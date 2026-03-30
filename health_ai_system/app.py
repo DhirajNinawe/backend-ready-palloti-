@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from groq import Groq
 
 # ================= CONFIG =================
-GROQ_API_KEY = "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"  # 👈 apni Groq API key daal
+GROQ_API_KEY = "GROK_API_KEY"  
 client = Groq(api_key=GROQ_API_KEY)
 
 # ================= LOAD MODELS =================
