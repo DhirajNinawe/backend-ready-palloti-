@@ -35,7 +35,7 @@ except ImportError:
 #  CONFIG
 # ============================================================
 BASE_DIR     = os.path.dirname(os.path.abspath(__file__))
-GROQ_API_KEY = os.getenv("GROQ_API_KEY", "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")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "GROK_API_KEY")
 
 client = Groq(api_key=GROQ_API_KEY)
 
